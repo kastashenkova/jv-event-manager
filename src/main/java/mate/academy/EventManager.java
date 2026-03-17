@@ -8,7 +8,7 @@ public class EventManager {
     private final ConcurrentLinkedQueue<EventListener> listeners
             = new ConcurrentLinkedQueue<>();
     private final ExecutorService executor
-            = Executors.newCachedThreadPool();
+            = Executors.newFixedThreadPool(10);
 
     public void registerListener(EventListener listener) {
         listeners.offer(listener);
@@ -20,7 +20,9 @@ public class EventManager {
 
     public void notifyEvent(Event event) {
         for (EventListener listener : listeners) {
-            executor.submit(() -> listener.onEvent(event));
+            if (!executor.isShutdown()) {
+                executor.submit(() -> listener.onEvent(event));
+            }
         }
     }
 
